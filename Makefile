@@ -1,23 +1,36 @@
 # Makefile
 # COSC 4785
 # $Author: ikelly $
-
+CXX=g++
 CXXFLAGS=-ggdb -Wall -Wno-sign-compare
-CXX=g++ 
+YACC=bison
+YFLAGS=--report=state -W -d
+LEX=flex
 LEX=flex++
-LEXFLAGS=--warn
+LFLAGS=--warn
+SRC=program3.cpp program3.tab.cpp program3_lex.cpp nodes.cpp
+HDRS=program3.tab.hpp nodes.hpp
 
+.PHONY: clean tarball
 
-program2: program3.cpp program3_lex.cpp
-	$(CXX) $(CXXFLAGS) program3.cpp program3_lex.cpp -o program3
+program3: $(SRC) $(HDRS)
+	$(CXX) $(CXXFLAGS) $(SRC) -o program3
 
-program2_lex.cpp: program3.lpp
-	$(LEX) $(LEXFLAGS) program3.lpp
+program3.tab.cpp : program3.ypp nodes.hpp
+	$(YACC) $(YFLAGS) program3.ypp
 
-# 
-# Probably do not need the core.* for students.
-# This removes all the 'generated' files. You can always generate them again.
-# Do need the -f so that all files get deleted even if some are missing.
-#
-clean: 
-	/bin/rm -f program3 program3_lex.cpp core.* 
+program3_lex.cpp: program3.lpp nodes.hpp
+	$(LEX) $(LFLAGS) program3.lpp
+
+tidy:
+	/bin/rm -f a.out core.* program3.tab.* program3.output \
+	  program3_lex.cpp program3
+
+# the tidy rule cleans up but leaves the executable. The clean, uses tidy
+# then it removes the executable. 
+clean: tidy
+	/bin/rm -f bison_test 
+
+tarball:
+	tar cf program3.tar Makefile nodes.hpp nodes.cpp program3.lpp program3.ypp\
+	  program3.cpp input
