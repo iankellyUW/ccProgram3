@@ -1,0 +1,754 @@
+%{
+using std::string;
+using std::cerr;
+
+#include "program3.hpp"
+
+/*
+ * the noyywrap is how the scanner handles end of file, now it will just
+ * quit. 
+ * get the line numbers from the scanner because of yylineno
+ */
+%}
+%option outfile="program3_lex.cpp"
+%option noyywrap
+%option yylineno
+
+/*
+* DO NOT define 945  different regular expressions. You do NOT need most of
+* them. Notice that I put them in as simple rules. Eventually you will need
+* to separate ALL those fancy expressions into single simple rules anyway so
+* why not start now. 
+*/
+
+%x ERROR
+%x COMMENT
+
+%%
+  /*
+   * Numbers. 
+   */
+[0-9]+          {
+                  first_column = next_column;
+                  next_column = next_column + yyleng;
+                  TOKEN = "NUMBER";
+                  value = yytext;
+                  return 8;
+                }
+
+[+-][0-9]+      {
+                 first_column = next_column;
+                 next_column = next_column + yyleng;
+                 TOKEN = "NUMBER";
+                 value = yytext;
+                 return 8;
+                } 
+  /*
+   * Whitespace: tab, space, newline.
+   */
+\t              { 
+                   first_column = next_column;
+                   next_column = first_column + 9 - (first_column % 8);
+                }
+
+\n              {
+                  next_column = 1;
+                  first_column = next_column;
+                }
+" "             { 
+                  first_column = next_column;
+                  next_column++;
+                }
+
+"=="            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "EQ";
+                    value=" ";
+                    return 1;
+                }
+
+">"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "GT";
+                    value = " ";
+                    return 1;
+                }
+
+"<"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;    
+                    TOKEN = "LT";
+                    value = " ";
+                    return 1;
+                }
+
+">="           {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "GEQ";
+                    value = " ";
+                    return 1;
+                }
+
+"<="            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "LEQ";
+                    value = " ";
+                    return 1;
+                }
+
+"!="            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "NEQ";
+                    value = " ";
+                    return 1;
+                }
+
+"||"            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "OR";
+                    value = " ";
+                    return 2;
+                }
+
+"&&"            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "AND";
+                    value = " ";
+                    return 2;
+                }
+"+"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "PLUS";
+                    value = " ";
+                    return 3;
+                }
+"-"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "MINUS";
+                    value = " ";
+                    return 3;
+                }
+"*"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "TIMES";
+                    value = " ";
+                    return 3;
+                }
+"/"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "DIV";
+                    value = " ";
+                    return 3;
+                }
+"{"            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "LBRACE";
+                    value = " ";
+                    return 4;
+                }
+"}"            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "RBRACE";
+                    value = " ";
+                    return 4;
+                }
+"["             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "LBRACK";
+                    value = " ";
+                    return 4;
+                }
+"]"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "RBRACK";
+                    value = " ";
+                    return 4;
+                }
+"("            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "LPAREN";
+                    value = " ";
+                    return 4;
+                }
+")"            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "RPAREN";
+                    value = " ";
+                    return 4;
+                }
+
+"\."            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "DOT";
+                    value = " ";
+                    return 5;
+                }
+","             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "COMMA";
+                    value = " ";
+                    return 5;
+                }
+";"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "SEMI";
+                    value = " ";
+                    return 5;
+                }
+"="             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "EQUAL";
+                    value = " ";
+                    return 5;
+                }
+"!"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "NOT";
+                    value = " ";
+                    return 5;
+                }
+"%"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "MOD";
+                    value = " ";
+                    return 5;
+                }
+
+int             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "INT";
+                    value = " ";
+                    return 6;
+                }
+
+void            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "VOID";
+                    value = " ";
+                    return 6;
+                }
+
+class            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "CLASS";
+                    value = " ";
+                    return 6;
+                }
+
+new             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "NEW";
+                    value = " ";
+                    return 6;
+                }
+
+print            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "PRINT";
+                    value = " ";
+                    return 6;
+                }
+
+read            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "READ";
+                    value = " ";
+                    return 6;
+                }
+
+return            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "RETURN";
+                    value = " ";
+                    return 6;
+                }
+if              {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "IF";
+                    value = " ";
+                    return 6;
+                }
+else            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "ELSE";
+                    value = " ";
+                    return 6;
+                }
+while           {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "WHILE";
+                    value = " ";
+                    return 6;
+                }
+this            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "THIS";
+                    value = " ";
+                    return 6;
+                }
+null            {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "NULLT";
+                    value = " ";
+                    return 6;
+                }
+[_a-zA-Z][_a-zA-Z0-9]* {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "IDENT";
+                    value = yytext;
+                    return 7;
+                }
+\/\/(.*)        {
+
+                }
+
+"/*"             {
+                    BEGIN(COMMENT);
+                    first_column = next_column;
+                    next_column += yyleng;
+                }
+
+<COMMENT>"\n"   { 
+                    
+                    first_column = next_column;
+                    next_column = 1;
+                }
+<COMMENT>"\t"   {   
+                    
+                    first_column = next_column;
+                    next_column = first_column + 9 - (first_column % 8);
+                 }
+<COMMENT>"*/"   {   
+                    BEGIN(INITIAL);
+                    first_column = next_column;
+                    next_column += yyleng; 
+                }
+<COMMENT>.      {
+                    yymore();
+                    first_column = next_column;
+                    next_column++;
+                }
+
+
+  /*
+   * Matches anything not matched. MUST BE LAST RULE.
+   */
+.               {
+                  BEGIN(ERROR);
+                  yyless(0);
+                }
+
+<ERROR>" "      {
+                BEGIN(0);
+                TOKEN = "ER_CH";
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + 2;
+		        if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+
+<ERROR>"=="     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+                
+<ERROR>">"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+
+<ERROR>"<"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+
+<ERROR>">="     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"<="     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"!="     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"||"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"&&"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"+"      {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"-"      {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"*"      {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"/"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"{"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"}"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"["     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"]"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"("     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>")"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>"\."     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>","      {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>";"     {
+                BEGIN(0);
+                yyless(1);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+                if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+<ERROR>[_a-zA-Z][_a-zA-Z0-9]*  {
+                BEGIN(0);
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + yyleng;
+		        if (yyleng > 1)
+                {
+                    
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+                return 11;
+                }
+
+<ERROR>.        { 
+                  yymore();
+                }
+
+%%
