@@ -167,6 +167,7 @@ void nodeNot::print(ostream *out)
   return;
 }
 
+<<<<<<< HEAD
 //nodeRead subclass
 nodeRead::nodeRead()
 {
@@ -206,12 +207,18 @@ void nodeBrackExp::print(ostream *out)
   }
   return;
 }
+=======
+>>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
 // And the nodeNum subclass
 
 nodeNum::nodeNum(int i)
 {
   ival=i;
+<<<<<<< HEAD
 }
+=======
+};
+>>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
 
 void nodeNum::print(ostream *out)
 {
