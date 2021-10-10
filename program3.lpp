@@ -1,14 +1,29 @@
 %{
+
+#include<iostream>
+#include<iomanip>
+#include<string>
+#include "nodes.hpp"
+#include "program3.hpp"
+#include "program3.tab.hpp"
+
+
 using std::string;
 using std::cerr;
+using std::string;
+using std::endl;
 
-#include "program3.hpp"
 
 /*
  * the noyywrap is how the scanner handles end of file, now it will just
  * quit. 
  * get the line numbers from the scanner because of yylineno
  */
+void yyerror(const char *string)
+{
+  cerr << string << endl;
+  return;
+}
 %}
 %option outfile="program3_lex.cpp"
 %option noyywrap
@@ -29,20 +44,22 @@ using std::cerr;
    * Numbers. 
    */
 [0-9]+          {
+                  yylval.ttype=new Node;
+                  yylval.ttype->setval(atoi(yytext));
                   first_column = next_column;
                   next_column = next_column + yyleng;
-                  TOKEN = "NUMBER";
+                  TOKEN = "NUM";
                   value = yytext;
-                  return 8;
+                  return NUM;
                 }
 
-[+-][0-9]+      {
+[-][0-9]+      {
                  first_column = next_column;
                  next_column = next_column + yyleng;
-                 TOKEN = "NUMBER";
+                 TOKEN = "NUM";
                  value = yytext;
-                 return 8;
-                } 
+                 return NEG;
+                }
   /*
    * Whitespace: tab, space, newline.
    */
@@ -54,6 +71,7 @@ using std::cerr;
 \n              {
                   next_column = 1;
                   first_column = next_column;
+                  return NL;
                 }
 " "             { 
                   first_column = next_column;
@@ -65,7 +83,7 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "EQ";
                     value=" ";
-                    return 1;
+                    return EQ;
                 }
 
 ">"             {
@@ -73,7 +91,7 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "GT";
                     value = " ";
-                    return 1;
+                    return GT;
                 }
 
 "<"             {
@@ -81,31 +99,31 @@ using std::cerr;
                     next_column = first_column + yyleng;    
                     TOKEN = "LT";
                     value = " ";
-                    return 1;
+                    return LT;
                 }
 
 ">="           {
                     first_column = next_column;
                     next_column = first_column + yyleng;
-                    TOKEN = "GEQ";
+                    TOKEN = "GE";
                     value = " ";
-                    return 1;
+                    return GE;
                 }
 
 "<="            {
                     first_column = next_column;
                     next_column = first_column + yyleng;
-                    TOKEN = "LEQ";
+                    TOKEN = "LE";
                     value = " ";
-                    return 1;
+                    return LE;
                 }
 
 "!="            {
                     first_column = next_column;
                     next_column = first_column + yyleng;
-                    TOKEN = "NEQ";
+                    TOKEN = "NE";
                     value = " ";
-                    return 1;
+                    return NE;
                 }
 
 "||"            {
@@ -113,7 +131,7 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "OR";
                     value = " ";
-                    return 2;
+                    return OR;
                 }
 
 "&&"            {
@@ -121,35 +139,36 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "AND";
                     value = " ";
-                    return 2;
+                    return AND;
                 }
 "+"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "PLUS";
                     value = " ";
-                    return 3;
+                    return PLUS;
                 }
+                
 "-"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "MINUS";
                     value = " ";
-                    return 3;
+                    return MINUS;
                 }
 "*"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "TIMES";
                     value = " ";
-                    return 3;
+                    return TIMES;
                 }
 "/"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "DIV";
                     value = " ";
-                    return 3;
+                    return DIV;
                 }
 "{"            {
                     first_column = next_column;
@@ -184,14 +203,14 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "LPAREN";
                     value = " ";
-                    return 4;
+                    return LPAREN;
                 }
 ")"            {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "RPAREN";
                     value = " ";
-                    return 4;
+                    return RPAREN;
                 }
 
 "\."            {
@@ -227,14 +246,21 @@ using std::cerr;
                     next_column = first_column + yyleng;
                     TOKEN = "NOT";
                     value = " ";
-                    return 5;
+                    return NOT;
                 }
 "%"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "MOD";
                     value = " ";
-                    return 5;
+                    return MOD;
+                }
+"^"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "EXP";
+                    value = " ";
+                    return EXP;
                 }
 
 int             {
@@ -242,7 +268,7 @@ int             {
                     next_column = first_column + yyleng;
                     TOKEN = "INT";
                     value = " ";
-                    return 6;
+                    return INT;
                 }
 
 void            {
@@ -266,7 +292,7 @@ new             {
                     next_column = first_column + yyleng;
                     TOKEN = "NEW";
                     value = " ";
-                    return 6;
+                    return NEW;
                 }
 
 print            {
@@ -282,7 +308,7 @@ read            {
                     next_column = first_column + yyleng;
                     TOKEN = "READ";
                     value = " ";
-                    return 6;
+                    return READ;
                 }
 
 return            {
@@ -325,14 +351,14 @@ null            {
                     next_column = first_column + yyleng;
                     TOKEN = "NULLT";
                     value = " ";
-                    return 6;
+                    return NULLT;
                 }
 [_a-zA-Z][_a-zA-Z0-9]* {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "IDENT";
                     value = yytext;
-                    return 7;
+                    return ID;
                 }
 \/\/(.*)        {
 
@@ -388,7 +414,40 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
+                }
+<ERROR>"\t"     {
+                BEGIN(0);
+                TOKEN = "ER_CH";
+                value = yytext;
+                first_column = next_column;
+                next_column = first_column + 9 - (first_column % 8);
+		        if (yyleng > 1)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+               
+                }
+
+<ERROR>"\n"     {
+                BEGIN(0);
+                TOKEN = "ER_CH";
+                value = yytext;
+                first_column = next_column;
+                next_column = 1;
+		        if (yyleng > 2)
+                {
+                    TOKEN = "ER_WD";
+                }
+                else
+                {
+                    TOKEN = "ER_CH";
+                }
+               
                 }
 
 <ERROR>"=="     {
@@ -405,7 +464,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
                 
 <ERROR>">"     {
@@ -422,7 +481,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 
 <ERROR>"<"     {
@@ -439,7 +498,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 
 <ERROR>">="     {
@@ -456,7 +515,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"<="     {
                 BEGIN(0);
@@ -472,7 +531,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"!="     {
                 BEGIN(0);
@@ -488,7 +547,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"||"     {
                 BEGIN(0);
@@ -504,7 +563,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"&&"     {
                 BEGIN(0);
@@ -520,7 +579,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"+"      {
                 BEGIN(0);
@@ -536,7 +595,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"-"      {
                 BEGIN(0);
@@ -552,7 +611,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"*"      {
                 BEGIN(0);
@@ -568,7 +627,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"/"     {
                 BEGIN(0);
@@ -584,7 +643,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"{"     {
                 BEGIN(0);
@@ -600,7 +659,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"}"     {
                 BEGIN(0);
@@ -616,7 +675,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"["     {
                 BEGIN(0);
@@ -632,7 +691,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"]"     {
                 BEGIN(0);
@@ -648,7 +707,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"("     {
                 BEGIN(0);
@@ -664,7 +723,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>")"     {
                 BEGIN(0);
@@ -680,7 +739,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>"\."     {
                 BEGIN(0);
@@ -696,7 +755,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>","      {
                 BEGIN(0);
@@ -712,7 +771,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 <ERROR>";"     {
                 BEGIN(0);
@@ -728,7 +787,28 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
+                }
+<ERROR>"!"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "NOT";
+                    value = " ";
+                    
+                }
+<ERROR>"%"             {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "MOD";
+                    value = " ";
+                    
+                }
+<ERROR>"^"      {
+                    first_column = next_column;
+                    next_column = first_column + yyleng;
+                    TOKEN = "EXP";
+                    value = " ";
+                    
                 }
 <ERROR>[_a-zA-Z][_a-zA-Z0-9]*  {
                 BEGIN(0);
@@ -744,7 +824,7 @@ null            {
                 {
                     TOKEN = "ER_CH";
                 }
-                return 11;
+               
                 }
 
 <ERROR>.        { 

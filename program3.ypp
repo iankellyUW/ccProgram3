@@ -1,0 +1,284 @@
+/* vim: ft=yacc
+ * That vim filetype setting is not need if I don't rename the file
+ * Simple Infix notation calculator.  
+ *
+ * $Author: kbuckner $
+ * $Date: 2021-09-27 11:38:16-06 $
+ * $Id: simple.ypp,v 1.4 2021-09-27 11:38:16-06 kbuckner Exp kbuckner $
+ *
+ * Based on the Bison examples. But I had to fall back to the old style
+ * union because could not get the api.value.type declaration to
+ * work with a pointer. 
+ * 
+ * $Log: simple.ypp,v $
+ * Revision 1.4  2021-09-27 11:38:16-06  kbuckner
+ * *** empty log message ***
+ *
+ * Revision 1.3  2020-09-28 14:10:51-06  kbuckner
+ * Cleaned up a little
+ *
+ * Revision 1.2  2019-10-07 14:37:15-06  kbuckner
+ * changed to ypp. Added some comments.
+ *
+ * Revision 1.1  2017-10-04 13:20:53-06  kbuckner
+ * Finally working version
+ *
+ */
+
+
+ 
+%{
+
+//#include <cmath> // for pow() in the original version of this
+#include <iostream>
+#include <FlexLexer.h>// yes have to include this here AND in the 'driver'
+#include "nodes.hpp"
+
+//DO NOT USE "namespace std;"
+using std::cerr;
+using std::cout;
+using std::endl;
+
+/*
+ * These are declared in "main" so that we can pass values between
+ * the two portions of the program.
+ */
+
+extern Node *tree;
+extern yyFlexLexer scanner;
+
+/* 
+ * Need to do this define, an "acceptable" hack to interface
+ * the C++ scanner with the C parser. 
+ * I can still use things like scanner.YYtext() here if I want. Just that
+ * (*bison*) does not know about cpp scanners, only the "C" version. 
+ */
+
+#define yylex() scanner.yylex()
+
+// need the function prototype for the parser. defined it in the lpp file
+
+void yyerror(const char *);
+
+
+/*
+ * There are lots of examples that have multiple types in the union here.
+ * DO NOT DO THAT. Keep it simple, one type. This is the type that you use
+ * in the definitions for %type tokens.
+ */
+
+%}
+
+%union {
+  Node *ttype;
+}
+
+/* 
+ * Bison declarations.  All the 'names' here will be put into an enum
+ * in the *.tab.hpp file. Include that in the .lpp file and then "return NUM;"
+ * passes back the value. 
+ *
+ * To pass the parser a value, say for NUM, you must use 
+ * yylval.ttype in the scanner. You could have a number of things in the union
+ * but do not get cute. pointers, char, int, double. DO NOT use a class or 
+ * struct declaration in the union. 
+ *
+ * The "exp" is only used here in this file but must be given a type if 
+ *(in this case) it is ever assigned a value. See the rules.
+ */
+%type<ttype> exp input line newexp simpletype bracketexp
+%token<ttype> NUM NEW ID INT
+%token RPAREN LPAREN LBRACK RBRACK NL NULLT READ
+%left PLUS MINUS EQ NE GE LE GT LT   /* shift-reduce errors are solved by this */
+%left TIMES DIV MOD AND OR  /* shift-reduce errors are solved by this */
+%precedence NEG UPLUS    /* negation--unary minus, not using right now*/
+%right EXP NOT    /* exponentiation */
+
+%% /* The grammar follows.  */
+/* Do yourself a favor. Figure out a 'standard' formatting for this. Otherwise
+ * it will just just be a big mess you cannot find anything in. 
+ * FOLLOW THE STYLE GUIDE. You can use tabs as tabs but NOT indentation. */
+input:  line	        {
+                        /* 
+                         * We have reached the end of the input and
+                         * now we are passing the results to the main function.
+                         */
+                          tree=$1;
+                          $$=$1;
+                        }
+      | input line      {
+                          $1->setnext($2);
+                          $$=$1;
+                        }
+;  /*trust me, don't forget the semicolon*/
+
+line: exp NL            {
+                        // YOU will NOT use newlines in your program
+                        $$=$1;
+                        };
+
+exp:   NUM              { 
+                        cout << "NUM : " << $1->getint() << endl;        
+                        $$=new nodeNum($1->getint()); delete $1; 
+                        }
+       | NULLT          {
+                        cout << "NULL" << endl;
+                        $$=new Node(NULL);
+                        }
+       | newexp         {
+                        cout << "newexp" << endl;
+                        $$=new Node($1);
+                        }
+       | exp PLUS exp   { 
+                        cout << "e + e : ";
+                        cout << $1->getint() << " + " << $3->getint() << endl; 
+                        $$=new Node($1,$3);
+                        $$->setval(" + ");
+                        }
+       | exp MINUS exp  { 
+                        cout << "e - e : ";
+                        cout << $1->getint() << " - " << $3->getint() << endl; 
+                        $$=new Node($1,$3);
+                        $$->setval(" - ");
+                        }
+       | exp TIMES exp  { 
+                        cout << "e * e : ";
+                        cout << $1->getint() << " * " << $3->getint() << endl; 
+                        $$=new Node($1,$3);
+                        $$->setval(" * ");
+                        }
+       | exp DIV exp    { 
+                        cout << "e / e : ";
+                        cout << $1->getint() << " / " << $3->getint() << endl; 
+                        $$=new Node($1,$3);
+                        $$->setval(" / ");
+                        }
+       | exp EXP exp    { 
+                        cout << "e ^ e : " ;
+                        cout << $1->getint() << " ^ " << $3->getint() << endl; 
+                        $$=new nodeExpExp($1,$3); 
+                        }
+       | MINUS exp  %prec NEG { 
+                        cout << "- e : " << $2->getint() << endl;       
+                        $$=new nodeMinus($2);
+                        }
+       | LPAREN exp RPAREN    { 
+                        cout << "(e) :" << $2->getint() << endl;        
+                        $$=new nodeParExp($2);
+                        }
+       | READ LPAREN RPAREN {
+                                cout << "read()" << endl;
+                                $$=new nodeRead();
+                            } 
+    //sum operators                    
+       | exp OR exp    {
+                        cout << "e || e: ";
+                        cout << $1->getint() << " || " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" || ");
+                        }  
+    //relation operators
+       | exp EQ exp     {
+                        cout << "e == e : ";
+                        cout << $1->getint() << " == " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" == ");
+                        }
+       | exp NE exp     {
+                        cout << "e != e: ";
+                        cout << $1->getint() << " != " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" != ");
+                        }
+       | exp GE exp     {
+                        cout << "e >= e: ";
+                        cout << $1->getint() << " >= " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" >= ");
+                        }
+       | exp LE exp     {
+                        cout << "e <= e: ";
+                        cout << $1->getint() << " <= " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" <= ");
+                        }
+       | exp GT exp     {
+                        cout << "e > e: ";
+                        cout << $1->getint() << " > " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" > ");
+                        }
+       | exp LT exp     {
+                        cout << "e < e: ";
+                        cout << $1->getint() << " < " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" < ");
+                        }
+    //unary operators
+    
+       | PLUS exp %prec UPLUS {
+                        cout << "+e : " << $2->getint() << endl;       
+                        $$=new nodePlus($2);
+                        }
+       | NOT exp        {
+                        cout << "!e: " << $2->getint() << endl;
+                        $$=new nodeNot($2);
+                        $$->setval("!");
+                        }
+    //prod operators
+       | exp MOD exp    {
+                        cout << "e % e: ";
+                        cout << $1->getint() << " % " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" % ");
+                        }
+       | exp AND exp    {
+                        cout << "e && e: ";
+                        cout << $1->getint() << " && " << $3->getint() << endl;
+                        $$=new Node($1,$3);
+                        $$->setval(" && ");
+                        }
+;
+//new exp
+newexp: NEW ID LPAREN RPAREN {
+                            cout << "new id()" << endl;
+                            $$=new Node();
+                        }
+       | NEW simpletype {
+                            cout << "new simpletype" << endl;
+                            $$=new Node($1);
+                        }
+       | NEW simpletype bracketexps {
+                            cout <<"new simpletype bracketexps" << endl;
+                            $$=new Node($1,$2);
+                        }
+       | NEW ID bracketexps {
+                            cout <<"new id bracketexps";
+                            $$=new Node($2);
+                        }
+;
+
+
+//simpletype
+simpletype: INT         {
+                            cout << "int";
+                            $$=new nodeInt();
+                        }
+;
+
+//bracketexps
+bracketexps: bracketexp {
+
+                        }
+       | bracketexps bracketexps {
+
+                        }
+;
+
+bracketexp: LBRACK exp RBRACK {
+                        cout << "[e] :" << $2->getint() << endl;        
+                        $$=new nodeBrackExp($2);
+                        }
+;
+
+%%
