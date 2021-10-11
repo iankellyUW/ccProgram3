@@ -189,14 +189,14 @@ void yyerror(const char *string)
                     next_column = first_column + yyleng;
                     TOKEN = "LBRACK";
                     value = " ";
-                    return 4;
+                    return LBRACK;
                 }
 "]"             {
                     first_column = next_column;
                     next_column = first_column + yyleng;
                     TOKEN = "RBRACK";
                     value = " ";
-                    return 4;
+                    return RBRACK;
                 }
 "("            {
                     first_column = next_column;
@@ -218,7 +218,7 @@ void yyerror(const char *string)
                     next_column = first_column + yyleng;
                     TOKEN = "DOT";
                     value = " ";
-                    return 5;
+                    return DOT;
                 }
 ","             {
                     first_column = next_column;
@@ -232,7 +232,7 @@ void yyerror(const char *string)
                     next_column = first_column + yyleng;
                     TOKEN = "SEMI";
                     value = " ";
-                    return 5;
+                    return SEMI;
                 }
 "="             {
                     first_column = next_column;
@@ -344,7 +344,7 @@ this            {
                     next_column = first_column + yyleng;
                     TOKEN = "THIS";
                     value = " ";
-                    return 6;
+                    return THIS;
                 }
 null            {
                     first_column = next_column;

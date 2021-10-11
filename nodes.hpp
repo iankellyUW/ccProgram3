@@ -82,7 +82,6 @@ public:
     virtual void print(ostream *out = 0);
 };
 
-<<<<<<< HEAD
 class nodeRead : public Node
 {
     public:
@@ -107,8 +106,6 @@ class nodeInt : public Node
         virtual void print(ostream *out = 0);
 };
 
-=======
->>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
 class nodeNum : public Node
 {
 public:

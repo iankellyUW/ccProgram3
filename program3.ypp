@@ -86,23 +86,13 @@ void yyerror(const char *);
  * The "exp" is only used here in this file but must be given a type if 
  *(in this case) it is ever assigned a value. See the rules.
  */
-<<<<<<< HEAD
-%type<ttype> exp input line newexp simpletype bracketexp
-%token<ttype> NUM NEW ID INT
+%type<ttype> exp input line newexp simpletype bracketexp bracketexps multibrackets type name program elements vardec
+%token<ttype> NUM NEW ID INT DOT THIS SEMI
 %token RPAREN LPAREN LBRACK RBRACK NL NULLT READ
 %left PLUS MINUS EQ NE GE LE GT LT   /* shift-reduce errors are solved by this */
 %left TIMES DIV MOD AND OR  /* shift-reduce errors are solved by this */
 %precedence NEG UPLUS    /* negation--unary minus, not using right now*/
 %right EXP NOT    /* exponentiation */
-=======
-%type<ttype> exp input line
-%token<ttype> NUM 
-%token RPAREN LPAREN NL NULLT
-%left PLUS MINUS EQ NE GE LE GT LT   /* shift-reduce errors are solved by this */
-%left TIMES DIV MOD AND  /* shift-reduce errors are solved by this */
-%precedence NEG UPLUS    /* negation--unary minus, not using right now*/
-%right EXP NOT      /* exponentiation */
->>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
 
 %% /* The grammar follows.  */
 /* Do yourself a favor. Figure out a 'standard' formatting for this. Otherwise
@@ -126,8 +116,44 @@ line: exp NL            {
                         // YOU will NOT use newlines in your program
                         $$=$1;
                         };
+//program
+program: elements       {
+                        $$=new Node($1);
+                        }
+        | program elements {
+                        $$=new Node($1,$2);
+                        }
+;               
+                
+//elements
+elements: vardec        {
+                        $$=new Node($1);
+                        }
+        | exp SEMI      {
+                        $$=new Node($1);
+                        $$->setval(";")
+                        }
+;
+//vardec
+vardec: type ID SEMI    {
+                        $$=new Node($1);
+                        }
+        | ID ID SEMI    {
+                        $$=new Node();
+                        }
+        | type multibrackets ID SEMI {
+                        $$=new Node($1,$2);
+                        }
+        | ID multibrackets ID SEMI {
+                        $$=new Node($1);
+                        }
+;
 
-exp:   NUM              { 
+exp: name               {
+                        $$=new Node($1);
+                        }
+
+       | NUM            { 
                         cout << "NUM : " << $1->getint() << endl;        
                         $$=new nodeNum($1->getint()); delete $1; 
                         }
@@ -135,13 +161,10 @@ exp:   NUM              {
                         cout << "NULL" << endl;
                         $$=new Node(NULL);
                         }
-<<<<<<< HEAD
        | newexp         {
                         cout << "newexp" << endl;
                         $$=new Node($1);
                         }
-=======
->>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
        | exp PLUS exp   { 
                         cout << "e + e : ";
                         cout << $1->getint() << " + " << $3->getint() << endl; 
@@ -179,11 +202,13 @@ exp:   NUM              {
                         cout << "(e) :" << $2->getint() << endl;        
                         $$=new nodeParExp($2);
                         }
-<<<<<<< HEAD
        | READ LPAREN RPAREN {
                                 cout << "read()" << endl;
                                 $$=new nodeRead();
                             } 
+       | name LPAREN RPAREN {
+                            $$=new Node($1);
+                            }
     //sum operators                    
        | exp OR exp    {
                         cout << "e || e: ";
@@ -191,8 +216,6 @@ exp:   NUM              {
                         $$=new Node($1,$3);
                         $$->setval(" || ");
                         }  
-=======
->>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
     //relation operators
        | exp EQ exp     {
                         cout << "e == e : ";
@@ -254,7 +277,9 @@ exp:   NUM              {
                         $$=new Node($1,$3);
                         $$->setval(" && ");
                         }
-<<<<<<< HEAD
+       | newexp         {
+                        $$=new Node($1);
+                        }
 ;
 //new exp
 newexp: NEW ID LPAREN RPAREN {
@@ -270,25 +295,35 @@ newexp: NEW ID LPAREN RPAREN {
                             $$=new Node($1,$2);
                         }
        | NEW ID bracketexps {
-                            cout <<"new id bracketexps";
+                            cout <<"new id bracketexps" << endl;
                             $$=new Node($2);
                         }
+       | NEW simpletype bracketexps multibrackets {
+
+                        }
+       | NEW ID bracketexps multibrackets {
+
+                        }
 ;
-
-
+//type
+type: simpletype        {
+                        $$=new Node($1);
+                        }
+;
 //simpletype
 simpletype: INT         {
                             cout << "int";
                             $$=new nodeInt();
+                            $$->setval(" INT ");
                         }
 ;
 
 //bracketexps
 bracketexps: bracketexp {
-
+                        $$=new Node($1);
                         }
-       | bracketexps bracketexps {
-
+       | bracketexps bracketexp {
+                        $$=new Node($1,$2);
                         }
 ;
 
@@ -296,10 +331,30 @@ bracketexp: LBRACK exp RBRACK {
                         cout << "[e] :" << $2->getint() << endl;        
                         $$=new nodeBrackExp($2);
                         }
-=======
-
-
->>>>>>> 8f7f1fb851546a4b87dcfa686a5dac979a7759a4
 ;
 
+//multibrackets
+multibrackets: LBRACK RBRACK {
+                        cout << "[]" << endl;
+                        $$=new Node();
+                        }
+       | multibrackets LBRACK RBRACK {
+                        cout << "new id()" << endl;
+                        $$=new Node($1);
+                        }
+;
+//name
+name: THIS              {
+                        $$=new Node();
+                        }
+        | ID            {
+                        $$=new Node();
+                        }
+        | name DOT ID   {
+                        $$=new Node($1);
+                        }
+        |name bracketexps {
+                        $$=new Node($1,$2);
+                        }
+;
 %%
