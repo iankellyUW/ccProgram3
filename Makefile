@@ -29,7 +29,7 @@ tidy:
 # the tidy rule cleans up but leaves the executable. The clean, uses tidy
 # then it removes the executable. 
 clean: tidy
-	/bin/rm -f bison_test 
+	/bin/rm -f program3 
 
 tarball:
 	tar cf program3.tar Makefile nodes.hpp nodes.cpp program3.lpp program3.ypp\
