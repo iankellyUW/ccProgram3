@@ -86,9 +86,9 @@ void yyerror(const char *);
  * The "exp" is only used here in this file but must be given a type if 
  *(in this case) it is ever assigned a value. See the rules.
  */
-%type<ttype> exp input line newexp simpletype bracketexp bracketexps multibrackets type name program elements vardec
+%type<ttype> exp newexp simpletype bracketexp bracketexps multibrackets type name program elements vardec
 %token<ttype> NUM NEW ID INT DOT THIS SEMI
-%token RPAREN LPAREN LBRACK RBRACK NL NULLT READ
+%token RPAREN LPAREN LBRACK RBRACK NULLT READ
 %left PLUS MINUS EQ NE GE LE GT LT   /* shift-reduce errors are solved by this */
 %left TIMES DIV MOD AND OR  /* shift-reduce errors are solved by this */
 %precedence NEG UPLUS    /* negation--unary minus, not using right now*/
@@ -98,24 +98,7 @@ void yyerror(const char *);
 /* Do yourself a favor. Figure out a 'standard' formatting for this. Otherwise
  * it will just just be a big mess you cannot find anything in. 
  * FOLLOW THE STYLE GUIDE. You can use tabs as tabs but NOT indentation. */
-input:  line	        {
-                        /* 
-                         * We have reached the end of the input and
-                         * now we are passing the results to the main function.
-                         */
-                          tree=$1;
-                          $$=$1;
-                        }
-      | input line      {
-                          $1->setnext($2);
-                          $$=$1;
-                        }
-;  /*trust me, don't forget the semicolon*/
 
-line: exp NL            {
-                        // YOU will NOT use newlines in your program
-                        $$=$1;
-                        };
 //program
 program: elements       {
                         $$=new Node($1);
@@ -131,7 +114,7 @@ elements: vardec        {
                         }
         | exp SEMI      {
                         $$=new Node($1);
-                        $$->setval(";")
+                        $$->setval(";");
                         }
 ;
 //vardec
@@ -299,10 +282,10 @@ newexp: NEW ID LPAREN RPAREN {
                             $$=new Node($2);
                         }
        | NEW simpletype bracketexps multibrackets {
-
+                            $$=new Node($2,$3);
                         }
        | NEW ID bracketexps multibrackets {
-
+                            $$=new Node($1,$2);
                         }
 ;
 //type

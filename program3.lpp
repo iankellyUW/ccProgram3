@@ -71,7 +71,7 @@ void yyerror(const char *string)
 \n              {
                   next_column = 1;
                   first_column = next_column;
-                  return NL;
+                  return 1;
                 }
 " "             { 
                   first_column = next_column;
