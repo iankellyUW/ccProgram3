@@ -46,6 +46,7 @@ using std::endl;
 
 extern Node *tree;
 extern yyFlexLexer scanner;
+extern string value;
 
 /* 
  * Need to do this define, an "acceptable" hack to interface
@@ -86,12 +87,12 @@ void yyerror(const char *);
  * The "exp" is only used here in this file but must be given a type if 
  *(in this case) it is ever assigned a value. See the rules.
  */
-%type<ttype> exp newexp simpletype bracketexp bracketexps multibrackets type name program elements vardec
-%token<ttype> NUM NEW ID INT DOT THIS SEMI
-%token RPAREN LPAREN LBRACK RBRACK NULLT READ
+%type<ttype> exp newexp bracketexp bracketexps type simpletype multibrackets name program elements vardec
+%token<ttype> NUM 
+%token RPAREN LPAREN LBRACK RBRACK NULLT READ NEW DOT THIS SEMI ID INT
 %left PLUS MINUS EQ NE GE LE GT LT   /* shift-reduce errors are solved by this */
 %left TIMES DIV MOD AND OR  /* shift-reduce errors are solved by this */
-%precedence NEG UPLUS    /* negation--unary minus, not using right now*/
+%precedence NEG UPLUS   /* negation--unary minus, not using right now*/
 %right EXP NOT    /* exponentiation */
 
 %% /* The grammar follows.  */
@@ -101,10 +102,13 @@ void yyerror(const char *);
 
 //program
 program: elements       {
-                        $$=new Node($1);
+                        tree=$1;
+                        $$=$1;
                         }
         | program elements {
-                        $$=new Node($1,$2);
+                        //$$=new Node($1,$2);
+                        $1->setnext($2);
+                        $$=$1;
                         }
 ;               
                 
@@ -118,22 +122,35 @@ elements: vardec        {
                         }
 ;
 //vardec
-vardec: type ID SEMI    {
+vardec: type ID SEMI     {
                         $$=new Node($1);
+                        $$->setval("INT, ID, SEMI");
                         }
         | ID ID SEMI    {
                         $$=new Node();
+                        $$->setval("ID, ID, SEMI");
                         }
         | type multibrackets ID SEMI {
                         $$=new Node($1,$2);
+                        $$->setval("type multbrak ID SEMI");
                         }
         | ID multibrackets ID SEMI {
-                        $$=new Node($1);
+                        $$=new Node($2);
+                        $$->setval("ID multbrack ID SEMI");
+                        }
+        | ID error SEMI {
+                        cout << "Error at ID (error) SEMI at line: " << scanner.lineno() << endl;
+                        yyerrok;
                         }
 ;
 
 exp: name               {
                         $$=new Node($1);
+                        }
+               
+       | SEMI           {
+                        $$=new Node();
+                        $$->setval(";");
                         }
 
        | NUM            { 
@@ -143,10 +160,6 @@ exp: name               {
        | NULLT          {
                         cout << "NULL" << endl;
                         $$=new Node(NULL);
-                        }
-       | newexp         {
-                        cout << "newexp" << endl;
-                        $$=new Node($1);
                         }
        | exp PLUS exp   { 
                         cout << "e + e : ";
@@ -177,7 +190,7 @@ exp: name               {
                         cout << $1->getint() << " ^ " << $3->getint() << endl; 
                         $$=new nodeExpExp($1,$3); 
                         }
-       | MINUS exp  %prec NEG { 
+       | MINUS exp %prec NEG { 
                         cout << "- e : " << $2->getint() << endl;       
                         $$=new nodeMinus($2);
                         }
@@ -190,8 +203,9 @@ exp: name               {
                                 $$=new nodeRead();
                             } 
        | name LPAREN RPAREN {
-                            $$=new Node($1);
+                            $$=new nodeNameParen($1);
                             }
+
     //sum operators                    
        | exp OR exp    {
                         cout << "e || e: ";
@@ -267,39 +281,36 @@ exp: name               {
 //new exp
 newexp: NEW ID LPAREN RPAREN {
                             cout << "new id()" << endl;
-                            $$=new Node();
+                            $$=new Node(); //add new node type
                         }
-       | NEW simpletype {
+       | NEW simpletype        {
                             cout << "new simpletype" << endl;
-                            $$=new Node($1);
+                            $$=new Node(); //add new node type
                         }
        | NEW simpletype bracketexps {
                             cout <<"new simpletype bracketexps" << endl;
-                            $$=new Node($1,$2);
+                            $$=new Node($2,$3); //add new node type
                         }
        | NEW ID bracketexps {
                             cout <<"new id bracketexps" << endl;
-                            $$=new Node($2);
+                            $$=new Node($3); //add new node type
                         }
        | NEW simpletype bracketexps multibrackets {
-                            $$=new Node($2,$3);
+                            $$=new Node($2,new Node($3,$4)); //add new node type?
                         }
        | NEW ID bracketexps multibrackets {
-                            $$=new Node($1,$2);
+                            $$=new Node($3,$4); //add new node type
                         }
 ;
 //type
 type: simpletype        {
                         $$=new Node($1);
                         }
-;
 //simpletype
 simpletype: INT         {
-                            cout << "int";
-                            $$=new nodeInt();
-                            $$->setval(" INT ");
+                        $$=new Node();
+                        $$->setval("int");
                         }
-;
 
 //bracketexps
 bracketexps: bracketexp {
@@ -320,24 +331,29 @@ bracketexp: LBRACK exp RBRACK {
 multibrackets: LBRACK RBRACK {
                         cout << "[]" << endl;
                         $$=new Node();
+                        $$->setval("[]");
                         }
        | multibrackets LBRACK RBRACK {
-                        cout << "new id()" << endl;
+                        cout << "new id[]" << endl;
                         $$=new Node($1);
                         }
 ;
 //name
 name: THIS              {
                         $$=new Node();
+                        $$->setval("this");
                         }
         | ID            {
                         $$=new Node();
+                        $$->setval(value);
                         }
         | name DOT ID   {
                         $$=new Node($1);
+                        $$->setval(".id");
                         }
-        |name bracketexps {
+        | name bracketexps {
                         $$=new Node($1,$2);
+                        $$->setval("[]");
                         }
 ;
 %%

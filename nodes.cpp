@@ -170,12 +170,12 @@ void nodeNot::print(ostream *out)
 //nodeRead subclass
 nodeRead::nodeRead()
 {
-    ival = 1;
+    sval = "read()";
 }
 
 void nodeRead::print(ostream *out)
 {
-  *out << "READ()";
+  *out << "read()";
   return;
 }
 
@@ -236,7 +236,19 @@ void nodeParExp::print(ostream *out)
   return;
 }
 
-nodeExpExp::nodeExpExp(Node *lf,Node *rt):Node(lf,rt){}
+
+//node name parens
+nodeNameParen::nodeNameParen(Node *lf, Node *rt):Node(lf,rt){}
+
+void nodeNameParen::print(ostream *out)
+{
+    *out << "()";
+}
+
+
+
+nodeExpExp::nodeExpExp(Node *lf, Node *rt):Node(lf,rt){}
+
 void nodeExpExp::print(ostream *out)
 {
   if(left) left->print(out);

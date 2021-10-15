@@ -120,6 +120,13 @@ public:
     virtual void print(ostream *out = 0);
 };
 
+class nodeNameParen : public Node
+{
+public:
+    nodeNameParen(Node *lf = 0, Node *rt = 0);
+    virtual void print(ostream *out = 0);
+};
+
 class nodeExpExp : public Node
 {
 public:
