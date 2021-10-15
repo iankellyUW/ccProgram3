@@ -1,0 +1,12 @@
+Ian Kelly
+Cosc 4785
+
+Lexical Errors:
+
+Lexical errors are output in the form:
+	ER_WD/ER_CH lexical error. Col: column, Line: line, Value
+This is because the lexical errors are all handled in the same way.
+
+Syntactic Errors:
+	In vardec, report error for 
+
