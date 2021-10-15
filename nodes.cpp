@@ -56,6 +56,11 @@ void Node::setval(double d)
   dval=d;
 }
 
+void Node::setID(string id)
+{
+    idPrev = id;
+}
+
 void Node::reset() 
 {
   myline=mycol=1;
@@ -99,7 +104,7 @@ Node* Node::getnext()
 void Node::print(ostream *out)
 {
   if(left) left->print(out);
-  *out << sval ;
+  *out << sval;
   if(right) right->print(out);
   //*out << endl;
   if(next) {
@@ -166,6 +171,21 @@ void nodeNot::print(ostream *out)
   //*out << endl;
   return;
 }
+//node nodeIdMulIdSem
+nodeIdMulId::nodeIdMulId(Node *lf,Node *rt):Node(lf,rt){}
+
+void nodeIdMulId::print(ostream *out)
+{
+  *out << idPrev;
+  if(left) left->print(out);
+  if(right) right->print(out);
+  *out << sval;
+  if(next) {
+    *out << endl;
+    next->print(out);
+  }
+  return;
+}
 
 //nodeRead subclass
 nodeRead::nodeRead()
@@ -191,15 +211,47 @@ void nodeInt::print(ostream *out)
     return;
 }
 
+//nodes for NEW par
+newNodePar::newNodePar():Node(){}
+
+void newNodePar::print(ostream *out)
+{
+  *out << "new ";
+  *out << sval;
+  *out << "()";
+  if(next) {
+    *out << endl;
+    next->print(out);
+  }
+  return;
+}
+
+
+//nodes for NEW 
+newNode::newNode(Node *lf,Node *rt):Node(lf,rt){}
+
+void newNode::print(ostream *out)
+{
+  *out << "new ";
+  *out << sval;
+  if(left) left->print(out);
+  if(right) right->print(out);
+  if(next) {
+    *out << endl;
+    next->print(out);
+  }
+  return;
+}
+
 //node bracket expression subclass
 nodeBrackExp::nodeBrackExp(Node *lf,Node *rt):Node(lf,rt){}
 
 void nodeBrackExp::print(ostream *out)
 {
-  *out << "[ ";
+  *out << "[";
   if(left) left->print(out);
   if(right) right->print(out);
-  *out << " ]" ;//<< endl;
+  *out << "]" ;//<< endl;
   if(next) {
     *out << endl;
     next->print(out);

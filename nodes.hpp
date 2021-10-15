@@ -38,6 +38,7 @@ public:
     void setval(const string s);
     void setval(int i);
     void setval(double d);
+    void setID(const string id);
     void reset();
     void setleft(Node *p);
     void setright(Node *p);
@@ -53,6 +54,7 @@ protected:
     int ival;
     double dval;
     string sval;
+    string idPrev;
     Node *left, *right;
     Node *next;
 };
@@ -82,10 +84,35 @@ public:
     virtual void print(ostream *out = 0);
 };
 
+class nodeIdMulId : public Node
+{
+public:
+    nodeIdMulId(Node *lf = 0, Node *rt = 0);
+
+    virtual void print(ostream *out = 0);
+};
+
+
 class nodeRead : public Node
 {
     public:
         nodeRead();
+
+        virtual void print(ostream *out = 0);
+};
+
+class newNodePar : public Node
+{
+    public:
+        newNodePar();
+
+        virtual void print(ostream *out = 0);
+};
+
+class newNode : public Node
+{
+    public:
+        newNode(Node *lf = 0, Node *rt = 0);
 
         virtual void print(ostream *out = 0);
 };

@@ -17,6 +17,8 @@ using std::string;
 
 string TOKEN;
 string value;
+string id;
+string idPrev;
 int first_column = 1;
 int next_column = 1;
 int errorCount = 0;
@@ -29,6 +31,8 @@ int main()
     tree = 0;
     //   any   n e e d e d   i n i t i a l i z a t i o n   c o d e
     yyparse();
+
+    cout << "\n\n";
     tree->print(&cout);
     cout << endl;
     // more   c o d e   i f   n e e d e d
