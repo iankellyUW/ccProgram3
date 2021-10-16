@@ -124,7 +124,12 @@ elements: vardec        {
                         $$->setval(";");
                         }
         | error SEMI    {
-                        
+                        cout << "Line: " << scanner.lineno() << " Col: " << first_column << " error in vardec, bad exp or declaration." << endl;
+                        yyerrok;
+                        }
+        | exp error     {
+                        cout << "Line: " << scanner.lineno() << " Col: " << first_column << " error in vardec, missing semicolon." << endl;
+                        yyerrok;
                         }
 ;
 //vardec
@@ -146,7 +151,7 @@ vardec: type ID SEMI     {
                         $$->setval(id);
                         }
         | error ID SEMI {
-                        cout << "Line: " << scanner.lineno() << "Col: " << first_column << ". bad type or id in vardec." << endl;
+                        cout << "Line: " << scanner.lineno() << " Col: " << first_column << ". bad id, type, or multibrack in vardec." << endl;
                         yyerrok;
                         }
        /* | ID error ID SEMI {
@@ -155,7 +160,7 @@ vardec: type ID SEMI     {
                         }*/
 ;
 
-exp: name               {
+exp:    name            {
                         $$=new Node($1);
                         }
                
@@ -291,25 +296,28 @@ exp: name               {
 ;
 //new exp
 newexp: NEW ID LPAREN RPAREN {
-                            $$=new newNodePar(); //add new node type
-                            $$->setval(id);
+                        $$=new newNodePar();
+                        $$->setval(id);
                         }
        | NEW simpletype {
-                            $$=new newNode($2); //add new node type
+                        $$=new newNode($2); 
                         }
        | NEW simpletype bracketexps {
-                            $$=new newNode($2,$3); //add new node type
+                        $$=new newNode($2,$3);
                         }
        | NEW ID bracketexps {
-                            $$=new newNode($3); //add new node type
-                            $$->setval(id);
+                        $$=new newNode($3);
+                        $$->setval(id);
                         }
        | NEW simpletype bracketexps multibrackets {
-                            $$=new newNode($2,new Node($3,$4)); //add new node type?
+                        $$=new newNode($2,new Node($3,$4));
                         }
        | NEW ID bracketexps multibrackets {
-                            $$=new newNode($3,$4); //add new node type
-                            $$->setval(id);
+                        $$=new newNode($3,$4);
+                        $$->setval(id);
+                        }
+       | NEW error      {
+                        cout << "Line: " << scanner.lineno() << " Col: " << first_column << " error after NEW" << endl;
                         }
 ;
 //type
